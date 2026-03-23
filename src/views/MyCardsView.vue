@@ -1,0 +1,1 @@
+<template><div>My Cards View</div></template>

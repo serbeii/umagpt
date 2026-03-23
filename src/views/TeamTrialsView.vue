@@ -1,0 +1,1 @@
+<template><div>Team Trials View</div></template>
