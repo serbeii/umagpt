@@ -42,6 +42,12 @@ pub async fn get_collection() -> Result<Collection, String> {
 }
 
 #[tauri::command]
+pub async fn clear_collection() -> Result<(), String> {
+    println!("Clearing whole collection...");
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn upsert_trainee(data: OwnedTrainee) -> Result<(), String> {
     println!("Upserting trainee: {:?}", data);
     Ok(())

@@ -4,7 +4,6 @@ import { useChatStore } from '../stores/chat'
 
 const chat = useChatStore()
 const userInput = ref('')
-const messageContainer = ref<HTMLElement | null>(null)
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -68,12 +67,22 @@ watch(() => chat.currentConversation?.messages.length, () => {
           class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white"
         />
         <button 
+          v-if="!chat.isStreaming"
           type="submit"
           :disabled="!userInput.trim()"
           class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
         >
           <span>Send</span>
           <span>✈️</span>
+        </button>
+        <button 
+          v-else
+          type="button"
+          @click="chat.isStreaming = false"
+          class="bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+        >
+          <span>Stop</span>
+          <span>⏹️</span>
         </button>
       </form>
       <div class="text-center mt-2 text-[10px] text-slate-600 uppercase tracking-widest">

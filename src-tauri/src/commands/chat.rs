@@ -1,8 +1,8 @@
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
-use tauri::Manager;
+use tauri::{AppHandle, Manager, State};
+use crate::llm_provider::ProviderManager;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Message {
@@ -50,4 +50,16 @@ pub async fn load_conversations(app: AppHandle) -> Result<Vec<Conversation>, Str
 }
 
 #[tauri::command]
-pub async fn chat_stream() {}
+pub async fn chat_stream(
+    app: AppHandle,
+    state: State<'_, ProviderManager>,
+    messages: Vec<Message>,
+) -> Result<(), String> {
+    let handler = {
+        let active_lock = state.active_provider.read().await;
+        let active = active_lock.as_ref().ok_or("No active provider")?;
+        active.completion_handler()
+    };
+
+    handler.chat_stream(&app, messages).await
+}

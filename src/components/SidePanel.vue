@@ -1,22 +1,14 @@
 <script setup lang="ts">
 import { usePlanStore } from '@/stores/plan'
-import { useChatStore } from '@/stores/chat'
-import { useRouter } from 'vue-router'
 
 const plan = usePlanStore()
-const chat = useChatStore()
-const router = useRouter()
-
-const startNewChat = () => {
-  chat.createNewChat()
-  router.push('/chat')
-}
 
 const navItems = [
   { label: 'Chat',         icon: '💬', route: '/chat' },
   { label: 'History',      icon: '🕘', route: '/history' },
   { label: 'My Trainees',  icon: '🐴', route: '/trainees' },
   { label: 'My Cards',     icon: '🃏', route: '/cards' },
+  { label: 'Models',       icon: '📦', route: '/models' },
   { label: 'Team Trials',  icon: '🏆', route: '/team-trials' },
   { label: 'Race Table',   icon: '🏁', route: '/races' },
   { label: 'Settings',     icon: '⚙️',  route: '/settings' },
@@ -33,13 +25,6 @@ const navItems = [
           <option value="unity_cup">Unity Cup</option>
           <option value="trackblazer">Trackblazer</option>
         </select>
-        <button 
-          @click="startNewChat"
-          class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded p-2 text-sm font-bold flex items-center justify-center gap-2 transition-colors"
-        >
-          <span>+</span>
-          <span>New Chat</span>
-        </button>
       </div>
     </div>
 
@@ -54,6 +39,7 @@ const navItems = [
         
         <div v-if="item.label === 'History'" class="my-4 border-t border-slate-800"></div>
         <div v-if="item.label === 'My Cards'" class="my-4 border-t border-slate-800"></div>
+        <div v-if="item.label === 'Models'" class="my-4 border-t border-slate-800"></div>
         <div v-if="item.label === 'Team Trials'" class="my-4 border-t border-slate-800"></div>
       </div>
     </nav>

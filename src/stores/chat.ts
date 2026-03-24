@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { usePlanStore } from './plan'
 
 export interface Message {
@@ -23,6 +24,7 @@ export const useChatStore = defineStore('chat', () => {
   const conversations = ref<Conversation[]>([])
   const currentConversationId = ref<string | null>(null)
   const loading = ref(false)
+  const isStreaming = ref(false)
 
   const currentConversation = computed(() => 
     conversations.value.find(c => c.id === currentConversationId.value) || null
@@ -73,7 +75,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const chat = currentConversation.value
-    if (!chat) return
+    if (!chat || isStreaming.value) return
 
     const userMessage: Message = {
       role: 'user',
@@ -90,17 +92,29 @@ export const useChatStore = defineStore('chat', () => {
 
     await saveHistory()
 
-    // Mock response for now
-    setTimeout(async () => {
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: `This is a mock response for: "${content}". LLM integration is not yet active.`,
-        created_at: new Date().toISOString()
-      }
-      chat.messages.push(assistantMessage)
+    isStreaming.value = true
+    const assistantMessage: Message = {
+      role: 'assistant',
+      content: '',
+      created_at: new Date().toISOString()
+    }
+    chat.messages.push(assistantMessage)
+
+    const unlisten = await listen<string>('chat_delta', (event) => {
+      assistantMessage.content += event.payload
+    })
+
+    try {
+      await invoke('chat_stream', { messages: chat.messages.slice(0, -1) })
+    } catch (e) {
+      console.error('Chat stream failed', e)
+      assistantMessage.content = `Error: ${e}`
+    } finally {
+      unlisten()
+      isStreaming.value = false
       chat.updated_at = new Date().toISOString()
       await saveHistory()
-    }, 500)
+    }
   }
 
   return {
@@ -108,7 +122,9 @@ export const useChatStore = defineStore('chat', () => {
     currentConversationId,
     currentConversation,
     loading,
+    isStreaming,
     loadHistory,
+    saveHistory,
     createNewChat,
     selectChat,
     sendMessage

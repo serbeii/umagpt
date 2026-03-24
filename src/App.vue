@@ -9,7 +9,7 @@ const system = useSystemStore()
 const chat = useChatStore()
 
 onMounted(() => {
-  system.checkStatus()
+  system.init()
   chat.loadHistory()
 })
 </script>
@@ -20,30 +20,30 @@ onMounted(() => {
     
     <main class="flex-1 flex flex-col overflow-hidden relative">
       <!-- Warnings Area -->
-      <div v-if="(!system.loading && system.status && (!system.status.llamacpp_installed || !system.status.llamacpp_running)) || system.warningMessage" 
+      <div v-if="(!system.loading && system.providerState !== 'Healthy') || system.warningMessage" 
         class="bg-amber-900/50 border-b border-amber-500/50 p-3 flex flex-col gap-2 text-amber-100 text-sm flex-none">
         
-        <div v-if="!system.status?.llamacpp_installed" class="flex items-center justify-between">
+        <div v-if="system.providerState === 'Unconfigured'" class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-lg">⚠️</span>
-            <span><strong>LLM Engine not found:</strong> Please install <code class="bg-black/30 px-1 rounded">llama.cpp</code>.</span>
+            <span><strong>Provider not configured:</strong> Please select and configure an LLM provider in Settings.</span>
           </div>
-          <button @click="system.checkStatus" class="hover:bg-amber-500/20 px-2 py-1 rounded transition-colors border border-amber-500/30">
-            Retry
+          <router-link to="/settings" class="hover:bg-amber-500/20 px-2 py-1 rounded transition-colors border border-amber-500/30">
+            Go to Settings
+          </router-link>
+        </div>
+
+        <div v-else-if="system.providerState === 'Stopped' || system.providerState === 'Crashed'" class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">⚠️</span>
+            <span><strong>LLM Engine is {{ system.providerState.toLowerCase() }}:</strong> Start or reconfigure the provider.</span>
+          </div>
+          <button @click="system.startProvider" class="hover:bg-amber-500/20 px-2 py-1 rounded transition-colors border border-amber-500/30">
+            Start Engine
           </button>
         </div>
 
-        <div v-else-if="!system.status?.llamacpp_running" class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-lg">⚠️</span>
-            <span><strong>LLM Engine not running:</strong> Start <code class="bg-black/30 px-1 rounded">llama-server</code>.</span>
-          </div>
-          <button @click="system.checkStatus" class="hover:bg-amber-500/20 px-2 py-1 rounded transition-colors border border-amber-500/30">
-            Retry
-          </button>
-        </div>
-
-        <div v-if="system.warningMessage" class="flex items-center justify-between border-t border-amber-500/30 pt-2 mt-2" :class="{'border-none mt-0 pt-0': !system.status || (system.status.llamacpp_installed && system.status.llamacpp_running)}">
+        <div v-if="system.warningMessage" class="flex items-center justify-between border-t border-amber-500/30 pt-2 mt-2" :class="{'border-none mt-0 pt-0': system.providerState === 'Healthy'}">
           <div class="flex items-center gap-2">
             <span class="text-lg">⚠️</span>
             <span>{{ system.warningMessage }}</span>

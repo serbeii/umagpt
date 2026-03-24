@@ -15,6 +15,7 @@ const router = createRouter({
     { path: "/cards", component: () => import("./views/MyCardsView.vue") },
     { path: "/team-trials", component: () => import("./views/TeamTrialsView.vue") },
     { path: "/races", component: () => import("./views/RaceTableView.vue") },
+    { path: "/models", component: () => import("./views/ModelsView.vue") },
     { path: "/settings", component: () => import("./views/SettingsView.vue") },
   ],
 });
